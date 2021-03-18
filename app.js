@@ -11,14 +11,15 @@ const B2 = require('backblaze-b2');
 //Discord SDK
 const Discord = require('discord.js');
 
-// Folder in which are .sql files
+// Folder in which are files
 const folder = "/files/" // Must end with /
 
-let hasENV = true
+// Specify which files / folders you want to ignore locally
+const ignoreLocalFiles = ["_old"]
 
 if (process.env.ENV_PRESENT !== "ja") {
-	console.log(".env is missing!!")
-	hasENV = false
+	console.log(".env is missing!!");
+	process.exit(1);
 }
 
 // Bucket ID where are backedup files
@@ -26,14 +27,12 @@ const bucketId = process.env.BUCKET_ID
 
 // API Key credentials
 const b2 = new B2({
-	//keyName "node-backblaze-backup1"
 	applicationKeyId: process.env.APP_KEY_ID, // or accountId: 'accountId'
 	applicationKey: process.env.APP_KEY // or masterApplicationKey
 });
 
 // Discord Webhook credentials
-const webhookClient = new Discord.WebhookClient(process.env.DISC_WB_ID, process.env.DISC_WB_TOKEN);
-// https://discord.com/api/webhooks/784192196240867358/Gin_My3Y31uT554ySy2OwanSisnInDp8TYIA__2Djv4eVwarcy8H2blkzFfDizkTpZsL
+const webhookClient = new Discord.WebhookClient(process.env.DISCORD_WH_ID, process.env.DISCORD_WH_TOKEN);
 
 const sendMsg = true;
 
@@ -117,9 +116,10 @@ async function getLocalFiles() {
 			else {
 
 				files.map((file, i) => {
-					if (!file.endsWith(".sql")) {
-						files.splice(i, 1)
-					}
+					ignoreLocalFiles.map((name) => {
+						if (file === name)
+							files.splice(i, 1)
+					})
 				})
 
 				resolve(files)
